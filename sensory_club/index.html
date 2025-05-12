@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sensōry Club - Control de Acceso</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #A6E3E9 0%, #FFB6B9 100%);
+        }
+
+        .card-shadow {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .input-focus:focus {
+            border-color: #FF6F91;
+            box-shadow: 0 0 0 3px rgba(255, 111, 145, 0.2);
+        }
+
+        .blink {
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #ff4757;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen bg-gray-100">
+    <!-- Pantalla de Login -->
+    <div id="login-screen" class="min-h-screen flex items-center justify-center gradient-bg p-4">
+        <div class="w-full max-w-md bg-white rounded-xl card-shadow overflow-hidden">
+            <div class="bg-blue-500 py-6 px-8 text-center text-white">
+                <h1 class="text-3xl font-bold">SensōryClub</h1>
+                <p class="mt-1">Sistema de Control</p>
+            </div>
+            <div class="p-8 space-y-6">
+                <div class="mb-6">
+                    <label class="block text-gray-700 font-medium mb-2">Usuario</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-user text-gray-400"></i>
+                        </div>
+                        <input type="text" id="username"
+                            class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none input-focus"
+                            placeholder="Ingrese su usuario" autofocus>
+                    </div>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-gray-700 font-medium mb-2">Contraseña</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-lock text-gray-400"></i>
+                        </div>
+                        <input type="password" id="password"
+                            class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none input-focus"
+                            placeholder="Ingrese su contraseña">
+                    </div>
+                </div>
+                <button id="login-btn"
+                    class="w-full py-3 px-4 bg-pink-400 hover:bg-pink-500 text-white font-semibold rounded-lg shadow-md transition duration-300">
+                    Iniciar Sesión
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sistema Principal -->
+    <div id="main-system" class="min-h-screen bg-gray-50 hidden">
+        <header class="bg-white shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                <div class="flex items-center">
+                    <div class="h-20 w-28 rounded-lg mr-3 bg-gray-200 flex items-center justify-center">
+                        <img src="LOGO_SENSORY_CLUB_PDF_page-0001-removebg-preview.png" alt="sensoryclud">
+                    </div>
+                    <h1 class="text-2xl font-semibold text-gray-800">SensōryClub</h1>
+                </div>
+                <button id="logout-btn"
+                    class="flex items-center text-red-600 hover:text-red-800 transition duration-300">
+                    <i class="fas fa-sign-out-alt mr-2"></i>Cerrar Sesión
+                </button>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Sección Izquierda -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Buscador Mejorado -->
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                        <div class="bg-pink-400 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                            <h2 class="text-lg font-semibold text-black">Buscar o Registrar Usuario</h2>
+                            <button id="new-user-btn"
+                                class="px-4 py-2 bg-green-400 hover:bg-green-500 text-white font-semibold rounded-lg shadow-md transition duration-300">
+                                <i class="fas fa-user-plus mr-2"></i>Nuevo Usuario
+                            </button>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex space-x-3 items-center">
+                                <div class="flex-1 relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-id-card text-gray-400"></i>
+                                    </div>
+                                    <input type="text" id="dni-search" maxlength="8"
+                                        class="w-full pl-10 pr-12 py-3 rounded-lg border border-gray-300 focus:outline-none input-focus"
+                                        placeholder="Ingrese DNI" autofocus>
+                                    <button id="clear-search"
+                                        class="absolute right-3 top-3 text-gray-400 hover:text-gray-600 hidden">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <button id="search-btn"
+                                    class="px-6 py-3 bg-pink-400 hover:bg-pink-500 text-white font-semibold rounded-lg shadow-md transition duration-300">
+                                    Buscar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información del Usuario -->
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                        <div class="bg-pink-400 px-6 py-4 border-b border-gray-200">
+                            <h2 class="text-lg font-semibold text-black">Información del Usuario</h2>
+                        </div>
+                        <div class="p-6">
+                            <div id="user-info"
+                                class="h-64 overflow-y-auto p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                <p class="text-gray-500 italic">Busque un usuario para ver su información</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección Derecha - Cronómetro -->
+                <div class="space-y-6">
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                        <div class="bg-pink-400 px-6 py-4 border-b border-gray-200">
+                            <h2 class="text-lg font-semibold text-black">Control de Tiempo</h2>
+                        </div>
+                        <div class="p-6 space-y-6">
+                            <!-- Asignar tiempo -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Asignar tiempo</label>
+                                <div class="flex space-x-3">
+                                    <div class="flex-1">
+                                        <input type="number" id="time-input" min="1" value="30"
+                                            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none input-focus">
+                                    </div>
+                                    <select id="time-unit"
+                                        class="px-4 py-3 rounded-lg border border-gray-300 focus:outline-none input-focus">
+                                        <option value="minutes">minutos</option>
+                                        <option value="hours">horas</option>
+                                    </select>
+                                    <button id="assign-btn"
+                                        class="px-4 py-3 bg-green-400 hover:bg-green-500 text-white font-semibold rounded-lg shadow-md transition duration-300">
+                                        Asignar
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Reloj -->
+                            <div class="text-center">
+                                <p class="text-sm font-medium text-gray-700 mb-2">Tiempo restante</p>
+                                <div id="time-display" class="text-4xl font-bold py-4 px-6 bg-gray-50 rounded-lg">
+                                    00:00:00
+                                </div>
+                            </div>
+
+                            <!-- Controles del temporizador -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <button id="start-btn"
+                                    class="py-3 bg-pink-400 hover:bg-pink-500 text-white font-semibold rounded-lg shadow-md transition duration-300">
+                                    <i class="fas fa-play"></i> Iniciar
+                                </button>
+                                <button id="reset-btn"
+                                    class="py-3 bg-blue-400 hover:bg-blue-500 text-white font-semibold rounded-lg shadow-md transition duration-300">
+                                    <i class="fas fa-redo"></i> Reiniciar
+                                </button>
+                            </div>
+
+                            <!-- Botones de ajuste -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <button id="add-time-btn"
+                                    class="py-3 bg-green-400 hover:bg-green-500 text-white font-semibold rounded-lg shadow-md transition duration-300">
+                                    <i class="fas fa-plus mr-2"></i>5 min
+                                </button>
+                                <button id="subtract-time-btn"
+                                    class="py-3 bg-red-400 hover:bg-red-500 text-white font-semibold rounded-lg shadow-md transition duration-300">
+                                    <i class="fas fa-minus mr-2"></i>5 min
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Info del Usuario Actual -->
+                    <div id="current-user-card" class="bg-white rounded-xl shadow-md overflow-hidden hidden">
+                        <div class="bg-pink-400 px-6 py-4 border-b border-gray-200">
+                            <h2 class="text-lg font-semibold text-black">Usuario Actual</h2>
+                        </div>
+                        <div class="p-6">
+                            <div id="current-user-info" class="space-y-2">
+                                <!-- Rellenado por JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de Registro -->
+    <div id="register-modal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div class="bg-pink-400 px-6 py-4 rounded-t-xl">
+                <h3 class="text-lg font-semibold text-black">Registrar Nuevo Usuario</h3>
+            </div>
+            <div class="p-6">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">DNI</label>
+                        <input type="text" id="register-dni" maxlength="8"
+                            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none input-focus"
+                            placeholder="Ingrese DNI">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre Completo</label>
+                        <input type="text" id="register-name"
+                            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none input-focus"
+                            placeholder="Ingrese nombre completo">
+                    </div>
+                </div>
+                <div class="mt-6 flex space-x-3">
+                    <button id="confirm-register-btn"
+                        class="flex-1 px-6 py-3 bg-green-400 hover:bg-green-500 text-white font-semibold rounded-lg shadow-md transition duration-300">
+                        Registrar
+                    </button>
+                    <button id="cancel-register-btn"
+                        class="flex-1 px-6 py-3 bg-red-400 hover:bg-red-500 text-white font-semibold rounded-lg shadow-md transition duration-300">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notificación con sonido -->
+    <div id="timeout-notification" class="notification">
+        <i class="fas fa-bell"></i>
+        <span>Tiempo agotado!</span>
+        <audio id="timeout-sound" preload="auto" loop>
+            <source src="Classic Alarm Clock - Sound Effect for Editing.mp3" type="audio/mpeg">
+        </audio>
+    </div>
+
+    <!-- Script -->
+    <script>
+        // Elementos del DOM
+        const loginScreen = document.getElementById('login-screen');
+        const mainSystem = document.getElementById('main-system');
+        const loginBtn = document.getElementById('login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const dniSearch = document.getElementById('dni-search');
+        const searchBtn = document.getElementById('search-btn');
+        const userInfo = document.getElementById('user-info');
+        const newUserBtn = document.getElementById('new-user-btn');
+        const registerModal = document.getElementById('register-modal');
+        const registerDni = document.getElementById('register-dni');
+        const registerName = document.getElementById('register-name');
+        const confirmRegisterBtn = document.getElementById('confirm-register-btn');
+        const cancelRegisterBtn = document.getElementById('cancel-register-btn');
+        const clearSearchBtn = document.getElementById('clear-search');
+
+        // Temporizador
+        const timeInput = document.getElementById('time-input');
+        const timeUnit = document.getElementById('time-unit');
+        const assignBtn = document.getElementById('assign-btn');
+        const timeDisplay = document.getElementById('time-display');
+        const startBtn = document.getElementById('start-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const addTimeBtn = document.getElementById('add-time-btn');
+        const subtractTimeBtn = document.getElementById('subtract-time-btn');
+
+        // Notificaciones
+        const timeoutNotification = document.getElementById('timeout-notification');
+        const timeoutSound = document.getElementById('timeout-sound');
+
+        // Estado
+        let currentUser = null;
+        let timerInterval = null;
+        let remainingTime = 0;
+        let isTimerRunning = false;
+
+        function showAlert(icon, title, text) {
+            Swal.fire({ icon, title, text, confirmButtonColor: '#FF6F91' });
+        }
+
+        function formatTime(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = seconds % 60;
+            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        function updateTimerDisplay() {
+            timeDisplay.textContent = formatTime(remainingTime);
+            timeDisplay.classList.toggle('text-red-500', remainingTime <= 300);
+        }
+
+        function displayUserInfo(user) {
+            if (!user) {
+                userInfo.innerHTML = '<p class="text-red-500">Error: No se recibieron datos del usuario</p>';
+                return;
+            }
+
+            userInfo.innerHTML = `
+                <div class="space-y-2">
+                    <p class="font-semibold text-lg">${user['Nombre Completo'] || 'Sin nombre'}</p>
+                    <p><span class="font-medium">DNI:</span> ${user.DNI || 'No disponible'}</p>
+                    <p><span class="font-medium">Registro:</span> ${user['Fecha Registro'] || 'No disponible'}</p>
+                    <p><span class="font-medium">Última visita:</span> ${user['Última Visita'] || 'No disponible'}</p>
+                    <p><span class="font-medium">Hora entrada:</span> ${user['Hora Entrada'] || 'No definido'}</p>
+                    <p><span class="font-medium">Hora final:</span> ${user['Hora Final'] || 'No definido'}</p>
+                </div>
+            `;
+        }
+
+        function setupDNIBehavior() {
+            dniSearch.addEventListener('input', function (e) {
+                // Autoformatear DNI (solo números)
+                this.value = this.value.replace(/\D/g, '').slice(0, 8);
+
+                // Mostrar/ocultar botón de limpieza
+                clearSearchBtn.classList.toggle('hidden', this.value.length === 0);
+
+                // Auto-enfocar y seleccionar todo al ingresar 8 dígitos
+                if (this.value.length === 8) {
+                    this.select();
+                }
+            });
+
+            // Botón para limpiar
+            clearSearchBtn.addEventListener('click', function () {
+                dniSearch.value = '';
+                dniSearch.focus();
+                this.classList.add('hidden');
+                userInfo.innerHTML = '<p class="text-gray-500 italic">Busque un usuario para ver su información</p>';
+                document.getElementById('current-user-card').classList.add('hidden');
+                currentUser = null;
+            });
+        }
+
+        async function handleSearch() {
+            const dni = dniSearch.value.trim();
+            if (dni.length !== 8 || !/^\d{8}$/.test(dni)) {
+                showAlert('error', 'Error', 'DNI debe tener 8 dígitos');
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:5000/api/usuarios`);
+                if (!response.ok) throw new Error('Error al obtener usuarios');
+
+                const users = await response.json();
+                const user = users.find(u => u.DNI == dni);
+
+                if (user) {
+                    currentUser = user;
+                    displayUserInfo(user);
+                    document.getElementById('current-user-card').classList.remove('hidden');
+                    document.getElementById('current-user-info').innerHTML = `
+                        <p><span class="font-medium">DNI:</span> ${user.DNI || 'No disponible'}</p>
+                        <p><span class="font-medium">Nombre:</span> ${user['Nombre Completo'] || 'Sin nombre'}</p>
+                    `;
+                    // Seleccionar DNI para nueva búsqueda
+                    dniSearch.select();
+                } else {
+                    registerDni.value = dni;
+                    registerModal.classList.remove('hidden');
+                    registerName.focus();
+                }
+            } catch (error) {
+                console.error("Error al buscar usuario:", error);
+                showAlert('error', 'Error', 'No se pudo conectar con el servidor');
+            }
+        }
+
+        async function registerUser() {
+            const dni = registerDni.value.trim();
+            const nombre = registerName.value.trim();
+
+            if (dni.length !== 8 || !dni.match(/^\d{8}$/)) {
+                showAlert('error', 'Error', 'DNI debe tener 8 dígitos');
+                return;
+            }
+
+            if (nombre.split(" ").length < 2) {
+                showAlert('error', 'Error', 'Ingrese nombre completo (mínimo 2 palabras)');
+                return;
+            }
+
+            try {
+                confirmRegisterBtn.disabled = true;
+                confirmRegisterBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registrando...';
+
+                const response = await fetch('http://localhost:5000/api/registrar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ dni, nombre })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error en el servidor');
+                }
+
+                const data = await response.json();
+                showAlert('success', 'Éxito', 'Usuario registrado correctamente');
+
+                currentUser = data.usuario;
+                displayUserInfo(currentUser);
+                document.getElementById('current-user-card').classList.remove('hidden');
+                document.getElementById('current-user-info').innerHTML = `
+                    <p><span class="font-medium">DNI:</span> ${currentUser.DNI}</p>
+                    <p><span class="font-medium">Nombre:</span> ${currentUser['Nombre Completo']}</p>
+                `;
+
+                registerModal.classList.add('hidden');
+                dniSearch.value = dni;
+                dniSearch.select();
+            } catch (error) {
+                console.error("Error en registerUser:", error);
+                showAlert('error', 'Error', error.message);
+            } finally {
+                confirmRegisterBtn.disabled = false;
+                confirmRegisterBtn.innerHTML = 'Registrar';
+            }
+        }
+
+        async function stopTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            startBtn.innerHTML = '<i class="fas fa-play"></i> Iniciar';
+            timeDisplay.classList.remove('blink');
+            timeoutNotification.classList.remove('show');
+            timeoutSound.pause();
+            timeoutSound.currentTime = 0;
+
+            // Actualizar hora final solo si hay usuario y tiempo terminó
+            if (currentUser && remainingTime === 0) {
+                try {
+                    const response = await fetch('http://localhost:5000/api/actualizar-hora-final', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ dni: currentUser.DNI })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Error al actualizar hora final');
+                    }
+
+                    // Actualizar visualización
+                    if (currentUser) {
+                        currentUser['Hora Final'] = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                        displayUserInfo(currentUser);
+                    }
+                } catch (error) {
+                    console.error("Error al actualizar hora final:", error);
+                }
+            }
+        }
+
+        function runTimer(onEnd) {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (remainingTime > 0) {
+                    remainingTime--;
+                    updateTimerDisplay();
+                } else {
+                    stopTimer();
+                    if (onEnd) onEnd();
+                }
+            }, 1000);
+        }
+
+        function startTimerCallback() {
+            isTimerRunning = true;
+            startBtn.innerHTML = '<i class="fas fa-pause"></i> Pausar';
+            runTimer(() => {
+                timeDisplay.classList.add('blink');
+                timeoutNotification.classList.add('show');
+                timeoutSound.volume = 1.0;
+                timeoutSound.loop = true;
+                timeoutSound.play().catch(e => {
+                    console.error("Error al reproducir audio:", e);
+                    showAlert('warning', 'Permiso requerido', 'Permita el uso de audio');
+                });
+            });
+        }
+
+        // Eventos
+        assignBtn.addEventListener('click', () => {
+            if (!currentUser) {
+                showAlert('error', 'Error', 'Seleccione un usuario primero');
+                return;
+            }
+
+            let time = parseInt(timeInput.value) || 0;
+            if (time <= 0) {
+                showAlert('error', 'Error', 'Ingrese un tiempo válido');
+                return;
+            }
+
+            remainingTime = time * (timeUnit.value === 'hours' ? 3600 : 60);
+            updateTimerDisplay();
+            showAlert('success', 'Éxito', `Se asignaron ${time} ${timeUnit.value} al usuario`);
+        });
+
+        startBtn.addEventListener('click', () => {
+            if (remainingTime <= 0) {
+                showAlert('error', 'Error', 'Asigne tiempo primero');
+                return;
+            }
+
+            isTimerRunning = !isTimerRunning;
+            isTimerRunning ? startTimerCallback() : stopTimer();
+        });
+
+        resetBtn.addEventListener('click', () => {
+            stopTimer();
+            remainingTime = 0;
+            updateTimerDisplay();
+        });
+
+        addTimeBtn.addEventListener('click', () => {
+            remainingTime += 300;
+            updateTimerDisplay();
+        });
+
+        subtractTimeBtn.addEventListener('click', () => {
+            remainingTime = Math.max(0, remainingTime - 300);
+            updateTimerDisplay();
+        });
+
+        // Sistema de Login
+        loginBtn.addEventListener('click', () => {
+            if (usernameInput.value === "admin" && passwordInput.value === "admin123") {
+                loginScreen.classList.add('hidden');
+                mainSystem.classList.remove('hidden');
+                dniSearch.focus();
+            } else {
+                showAlert('error', 'Error', 'Credenciales incorrectas');
+            }
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            mainSystem.classList.add('hidden');
+            loginScreen.classList.remove('hidden');
+            currentUser = null;
+            stopTimer();
+            usernameInput.value = '';
+            passwordInput.value = '';
+            usernameInput.focus();
+        });
+
+        // Validaciones
+        dniSearch.addEventListener('input', e => {
+            e.target.value = e.target.value.replace(/\D/g, '').slice(0, 8);
+        });
+
+        registerDni.addEventListener('input', e => {
+            e.target.value = e.target.value.replace(/\D/g, '').slice(0, 8);
+        });
+
+        // Event Listeners
+        searchBtn.addEventListener('click', handleSearch);
+        newUserBtn.addEventListener('click', () => {
+            dniSearch.value = '';
+            clearSearchBtn.classList.add('hidden');
+            userInfo.innerHTML = '<p class="text-gray-500 italic">Busque un usuario para ver su información</p>';
+            document.getElementById('current-user-card').classList.add('hidden');
+            currentUser = null;
+
+            registerModal.classList.remove('hidden');
+            registerDni.value = '';
+            registerName.value = '';
+            registerDni.focus();
+        });
+        confirmRegisterBtn.addEventListener('click', registerUser);
+        cancelRegisterBtn.addEventListener('click', () => {
+            registerModal.classList.add('hidden');
+            dniSearch.focus();
+        });
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', () => {
+            timeoutSound.volume = 1.0;
+            setupDNIBehavior();
+
+            // Enfocar automáticamente en el login
+            if (!loginScreen.classList.contains('hidden')) {
+                usernameInput.focus();
+            }
+        });
+    </script>
+</body>
+
+</html>
